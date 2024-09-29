@@ -21,7 +21,7 @@ fireBaseConnection();
 const stripe = Stripe(process.env.STRIPE_SECRET);
 mongoose.connect(process.env.MONGO_URL).then(() => console.log("db connected")).catch((err) => console.log(err));
 
-const endpointSecret = "whsec_qzBpCZxTyoxom98h4rL0Pxrf6NLRJIjc";
+const endpointSecret = "whsec_ehjK3AgF2xip3iDyRxHS2xqXOyNjmDMB";
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
   const sig = request.headers['stripe-signature'];
