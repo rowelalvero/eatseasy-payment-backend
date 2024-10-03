@@ -5,7 +5,7 @@ let db;
 const fireBaseConnection = async () => {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      databaseURL: "https://foodly-flutter-dc94b-default-rtdb.firebaseio.com"
+      databaseURL: "https://xxxxx.firebaseio.com"
     });
       console.log("Connected to Firebase");
       db = admin.database();

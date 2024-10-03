@@ -63,8 +63,8 @@ router.post("/create-checkout-session", async (req, res) => {
     line_items,
     mode: "payment",
     customer: customer.id,
-    success_url: "https://eatseasy-payment-backend.vercel.app/stripe/checkout-success",
-    cancel_url:  "https://eatseasy-payment-backend.vercel.app/stripe/cancel",
+    success_url: "https://eatseasy-payment.vercel.app/stripe/checkout-success",
+    cancel_url:  "https://eatseasy-payment.vercel.app/stripe/cancel",
   });
 
   console.log(session.url);

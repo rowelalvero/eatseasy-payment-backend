@@ -109,7 +109,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
           }
 
           if (restaurantOwner && restaurantOwner.fcm && restaurantOwner.fcm !== 'none') {
-            console.log("sending notification to restaruant")
+            console.log("sending notification to restaurant")
             sendNotification(restaurantOwner.fcm, "🥡 Incoming Order", notificationData, `You have a new order: ${updatedOrder._id}. Please process the order 🙏`);
             console.log("successfully sent notification")
 
