@@ -74,32 +74,37 @@ router.post("/create-checkout-session", async (req, res) => {
 });
 
 router.post("/topup-wallet", async (req, res) => {
-  const { userId, amount, paymentMethod } = req.body;
+  const { userId, walletTransactions, walletBalance } = req.body;
 
   // Create a new customer if necessary
   const customer = await stripe.customers.create({
     metadata: {
       userId: userId,
-      paymentMethod: paymentMethod,
     },
   });
 
-  // Create the line item for the top-up amount
-  const line_items = [{
+  // Assuming walletTransactions is an array with at least one transaction
+  if (!walletTransactions || walletTransactions.length === 0) {
+    return res.status(400).send({ message: "No wallet transactions provided." });
+  }
+
+  // Create line items for each transaction in walletTransactions
+  const line_items = walletTransactions.map(transaction => ({
     price_data: {
       currency: "usd",
       product_data: {
         name: "Wallet Top-Up",
-        description: `Top-up of $${amount}`,
+        description: `Top-up of $${transaction.amount} via ${transaction.paymentMethod}`,
         metadata: {
           userId: userId,
         },
       },
-      unit_amount: amount * 100, // Amount in cents
+      unit_amount: transaction.amount * 100, // Amount in cents
     },
     quantity: 1,
-  }];
+  }));
 
+  // Create a checkout session for the top-up
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items,
@@ -114,6 +119,7 @@ router.post("/topup-wallet", async (req, res) => {
   // Respond with the checkout session URL
   res.send({ url: session.url });
 });
+
 
 
 
