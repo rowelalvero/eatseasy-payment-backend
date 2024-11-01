@@ -73,6 +73,47 @@ router.post("/create-checkout-session", async (req, res) => {
   res.send({ url: session.url });
 });
 
+router.post("/topup-wallet", async (req, res) => {
+  const { userId, amount, paymentMethod } = req.body;
+
+  // Create a new customer if necessary
+  const customer = await stripe.customers.create({
+    metadata: {
+      userId: userId,
+      paymentMethod: paymentMethod,
+    },
+  });
+
+  // Create the line item for the top-up amount
+  const line_items = [{
+    price_data: {
+      currency: "usd",
+      product_data: {
+        name: "Wallet Top-Up",
+        description: `Top-up of $${amount}`,
+        metadata: {
+          userId: userId,
+        },
+      },
+      unit_amount: amount * 100, // Amount in cents
+    },
+    quantity: 1,
+  }];
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items,
+    mode: "payment",
+    customer: customer.id,
+    success_url: "https://eatseasy-payment-backend.vercel.app/stripe/checkout-success",
+    cancel_url:  "https://eatseasy-payment-backend.vercel.app/stripe/cancel",
+  });
+
+  console.log("Top-up session URL:", session.url);
+
+  // Respond with the checkout session URL
+  res.send({ url: session.url });
+});
 
 
 
