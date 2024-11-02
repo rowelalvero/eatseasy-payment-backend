@@ -120,4 +120,38 @@ router.post("/topup-wallet", async (req, res) => {
   res.send({ url: session.url });
 });
 
+router.post("/create-payout", async (req, res) => {
+  const { userId, amount, currency = "usd" } = req.body;
+
+  try {
+    // Fetch or create a connected account for the user
+    const account = await stripe.accounts.create({
+      type: "express",
+      metadata: { userId: userId },
+    });
+
+    // Create the payout
+    const payout = await stripe.payouts.create({
+      amount: amount * 100, // Amount in cents
+      currency: currency,
+      destination: account.id,
+      description: `Payout for user ${userId}`,
+    });
+
+    // Construct the payout link for Stripe dashboard
+    const payoutLink = `https://dashboard.stripe.com/payouts/${payout.id}`;
+
+    console.log("Payout link:", payoutLink);
+
+    res.send({
+      message: "Payout created successfully.",
+      payoutLink: payoutLink,
+      payoutDetails: payout,
+    });
+  } catch (error) {
+    console.error("Error creating payout:", error);
+    res.status(500).send({ message: "Failed to create payout", error: error.message });
+  }
+});
+
 module.exports = router;
