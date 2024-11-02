@@ -122,16 +122,22 @@ router.post("/topup-wallet", async (req, res) => {
 
 router.post("/create-payout", async (req, res) => {
   try {
-    const { amount, currency, paymentMethodId } = req.body;
+    const { amount, currency, paymentMethodId, userId } = req.body;
 
     if (!amount || !currency || !paymentMethodId) {
       return res.status(400).send({ message: "Missing payout details." });
     }
 
-    // Optionally create a customer or retrieve an existing customer
-    const customer = await stripe.customers.create({
-      payment_method: paymentMethodId,
+    // Retrieve the existing customer (Assuming you are storing userId in metadata)
+    const customers = await stripe.customers.list({
+      limit: 1,
+      metadata: { userId: userId } // Use userId to find the right customer
     });
+
+    const customer = customers.data[0];
+    if (!customer) {
+      return res.status(400).send({ message: "Customer not found." });
+    }
 
     // Create a payout
     const payout = await stripe.payouts.create({
@@ -144,7 +150,7 @@ router.post("/create-payout", async (req, res) => {
     res.status(200).send({ message: "Payout created successfully", payout });
   } catch (error) {
     console.error("Payout error:", error);
-    res.status(500).send({ message: "Failed to create payout", error });
+    res.status(500).send({ message: "Failed to create payout", error: error.message });
   }
 });
 
