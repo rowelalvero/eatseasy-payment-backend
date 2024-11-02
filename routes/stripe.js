@@ -110,7 +110,7 @@ router.post("/topup-wallet", async (req, res) => {
     line_items,
     mode: "payment",
     customer: customer.id,
-    success_url: "https://eatseasy-payment-backend.vercel.app/stripe/checkout-success",
+    success_url: "https://eatseasy-payment-backend.vercel.app/stripe/v1/topups",
     cancel_url:  "https://eatseasy-payment-backend.vercel.app/stripe/cancel",
   });
 
@@ -119,9 +119,5 @@ router.post("/topup-wallet", async (req, res) => {
   // Respond with the checkout session URL
   res.send({ url: session.url });
 });
-
-
-
-
 
 module.exports = router;
