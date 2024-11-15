@@ -19,7 +19,23 @@ dotenv.config();
 
 fireBaseConnection();
 const stripe = Stripe(process.env.STRIPE_SECRET);
-mongoose.connect(process.env.MONGO_URL).then(() => console.log("db connected")).catch((err) => console.log(err));
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("DB connected"))
+  .catch((err) => console.log(err));
+
+// CORS Configuration
+const corsOptions = {
+  origin: ['https://eatseasy-partner.web.app',
+             'https://eatseasyfoods.web.app',
+             'https://partner.eatseasy.online',
+             'https://foods.eatseasy.online'], // Allow specific origins or all
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Include credentials (e.g., cookies) if needed
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
 
 const endpointSecret = "whsec_ehjK3AgF2xip3iDyRxHS2xqXOyNjmDMB";
 
@@ -44,7 +60,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
     case 'checkout.session.completed':
       const checkoutData = event.data.object;
       console.log("Session Completed");
-      
+
       try {
         const customer = await stripe.customers.retrieve(checkoutData.customer);
         const data = JSON.parse(customer.metadata.cart);
@@ -59,9 +75,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
 
         const orderId = products[0].id;
         console.log('Product ID:', orderId);
-        console.log('Product ID Type:', typeof orderId);
 
-        // Convert the ID to ObjectId if it is in string format
+        // Convert the ID to ObjectId if necessary
         let objectId;
         try {
           objectId = new mongoose.Types.ObjectId(orderId);
@@ -69,24 +84,21 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
           console.error('Invalid ObjectId:', orderId);
           return response.status(400).send('Invalid ObjectId');
         }
-        console.log('Converted Object ID:', objectId);
 
         // Verify if the order exists before updating
         const orderExists = await Order.findById(objectId);
         if (!orderExists) {
-          console.log("Order not found in the database with ID:", objectId);
+          console.log("Order not found:", objectId);
           return response.status(404).send('Order not found');
         }
 
         const updatedOrder = await Order.findByIdAndUpdate(
-          objectId, 
-          { paymentStatus: 'Completed' }, 
+          objectId,
+          { paymentStatus: 'Completed' },
           { new: true }
         );
 
-        if (!updatedOrder) {
-          console.log("Order not found after update attempt with ID:", objectId);
-        } else {
+        if (updatedOrder) {
           console.log('Updated Order:', updatedOrder);
 
           const db = admin.database();
@@ -104,15 +116,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
             messageType: 'order'
           };
 
-          if (user && user.fcm && user.fcm !== 'none') {
+          if (user?.fcm && user.fcm !== 'none') {
             sendNotification(user.fcm, "🥡 Your Order Placed Successfully", notificationData, `Please wait patiently, you will be updated on your order: ${updatedOrder._id} as soon as there is an update, 🙏`);
           }
 
-          if (restaurantOwner && restaurantOwner.fcm && restaurantOwner.fcm !== 'none') {
-            console.log("sending notification to restaurant")
+          if (restaurantOwner?.fcm && restaurantOwner.fcm !== 'none') {
+            console.log("sending notification to restaurant");
             sendNotification(restaurantOwner.fcm, "🥡 Incoming Order", notificationData, `You have a new order: ${updatedOrder._id}. Please process the order 🙏`);
-            console.log("successfully sent notification")
-
+            console.log("successfully sent notification");
           }
         }
       } catch (err) {
@@ -128,10 +139,10 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
   response.send();
 });
 
-app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 app.use("/stripe", stripeRouter);
 
-app.listen(process.env.PORT || port, () => console.log(`App listening on port ${process.env.PORT || port}!`));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`App listening on port ${port}!`));
