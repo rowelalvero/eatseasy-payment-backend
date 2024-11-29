@@ -2,6 +2,17 @@
 <html>
   <head>
     <title>Checkout Success</title>
+    <script type="text/javascript">
+      let hasSentMessage = false;
+      function sendPaymentSuccess() {
+        if (!hasSentMessage) {
+          console.log('Payment Success, sending message to parent...');
+          window.opener.postMessage("payment_success", "http://localhost:49452");
+          hasSentMessage = true;
+        }
+      }
+      sendPaymentSuccess();
+    </script>
     <style>
       body {
         text-align: center; /* Center aligns the content */
