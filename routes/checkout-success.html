@@ -7,7 +7,7 @@
       function sendPaymentSuccess() {
         if (!hasSentMessage) {
           console.log('Payment Success, sending message to parent...');
-          window.opener.postMessage("payment_success", "http://localhost:49452");
+          window.opener.postMessage("payment_success", "https://foods.eatseasy.online");
           hasSentMessage = true;
         }
       }
@@ -40,8 +40,8 @@
   <body>
     <div> <!-- Container for the content -->
       <img src="https://d326fntlu7tb1e.cloudfront.net/uploads/f882a061-0674-4c82-8dc6-ba494f640126-5aa78e087603fc558cffbf16.png" alt="Success Image">
-      <h1>Payment Successful!</h1>
-      <p>Thank you for your purchase.</p>
+      <h1>Top-up Successful!</h1>
+      <p>You can go back to you wallet and reload.</p>
     </div>
   </body>
 </html>
